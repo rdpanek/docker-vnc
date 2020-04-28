@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM centos:8
 MAINTAINER RDPanek "rdpanek@gmail.com"
 
 LABEL io.k8s.description="VNC Container based on Ubuntu" \
@@ -14,33 +14,22 @@ EXPOSE $VNC_PORT
 
 ### Envrionment config
 ENV USER=root \
-    HOME=/root \
-    DEBIAN_FRONTEND=noninteractive \
     VNC_COL_DEPTH=24 \
     VNC_RESOLUTION=1280x1024 \
-    VNC_PW=ratata \
-    PASSWD_PATH="$HOME/.vnc/passwd"
+    VNC_PW=ratata
 
 ### Install dependencies
-RUN apt update && apt install -y \
-    xfce4 \
-    xfce4-goodies \
-    xfce4-terminal \
-    tightvncserver \
-    default-jre \
-    git \
-    tig \
-    htop && \
-    apt clean -y
+RUN yum update -y && \
+    yum -y install epel-release && \
+    yum groupinstall "Xfce" -y && \
+    yum -y install tigervnc-server tigervnc-server-minimal && \
+    yum clean all
 
 ### Setup VNC
-RUN mkdir -p "$HOME/.vnc" && \
-    PASSWD_PATH="$HOME/.vnc/passwd" && \
-    echo $VNC_PW | vncpasswd -f >> $PASSWD_PATH \
-    && chmod 600 $PASSWD_PATH
-
-COPY docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
-
-WORKDIR /${HOME}
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ADD ./scripts/xstartup /opt
+RUN mkdir ~/.vnc && \
+    PASSWD_PATH=~/.vnc/passwd && \
+    echo $VNC_PW | vncpasswd -f >> $PASSWD_PATH && \
+    chmod 600 $PASSWD_PATH && \
+    mv /opt/xstartup ~/.vnc/xstartup && \
+    chmod +x ~/.vnc/xstartup
