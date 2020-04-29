@@ -16,11 +16,10 @@ EXPOSE $VNC_PORT
 ENV USER=root \
     VNC_COL_DEPTH=24 \
     VNC_RESOLUTION=1280x1024 \
-    VNC_PW=ratata
+    VNC_PW=secret
 
 ### Install dependencies
-RUN yum update -y && \
-    yum -y install epel-release && \
+RUN yum -y install epel-release && \
     yum groupinstall "Xfce" -y && \
     yum -y install tigervnc-server tigervnc-server-minimal && \
     yum clean all
